@@ -10,7 +10,6 @@ CROSS=1
 CROSS_COMPILE ?= riscv32-unknown-elf-
 MARCH ?= rv32i_zicsr_zifencei
 MABI  ?= ilp32
-#OBJCOPY = $(RISCV_PREFIX)objcopy
 
 # NeoRV32 folders
 NEORV32_HOME ?= /home/daniel/git-dropbox/softcore_micropython/common/neorv32
@@ -32,17 +31,22 @@ IMAGE_GEN = $(NEORV32_EXG_PATH)/image_gen
 # Set CFLAGS and libraries.
 CFLAGS_NEORV32  = -march=$(MARCH) -mabi=$(MABI) $(EFFORT) -Wall -ffunction-sections -fdata-sections -nostartfiles -mno-fdiv
 CFLAGS_NEORV32 += -mstrict-align -mbranch-cost=10 -Wl,--gc-sections -ffp-contract=off
-CFLAGS += $(CFLAGS_NEORV32) -I. -I$(BUILD) -I$(TOP) -I$(NEORV32_INC_PATH)
+CFLAGS +=  -I. -I$(BUILD) -I$(TOP) -I$(NEORV32_INC_PATH) $(CFLAGS_NEORV32)
 CFLAGS += -Os # Save some codespace
-#CFLAGS += -fdata-sections -ffunction-sections
-LIBS += -lm
 
+# Disable debuging (otherwise linker cannot find __asert_func)
+CFLAGS += -DNDEBUG
+
+# For some reason we need to include the folder of libgcc and only then we can add link in using -lgcc
+LIBGCC_FILE_NAME = /home/daniel/bin/neorv32-riscv/bin/../lib/gcc/riscv32-unknown-elf/12.1.0/libgcc.a
+LIBS += -L$(dir $(LIBGCC_FILE_NAME)) -lgcc
 
 # Set LDFLAGS (linking)
-#LDFLAGS += $(CFLAGS) -T neorv32.ld -Map=$@.map --cref --gc-sections
-LDFLAGS += $(CFLAGS) -T neorv32.ld
+LDFLAGS += -nostdlib -T neorv32.ld -Map=$@.map --cref --gc-sections
 
 # Define the required source files.
+# printf.c for snprintf implementation (when compiling with -nostdlib)
+# string0.c also necessary when compiling with -nostdlib
 SRC_C = \
 	main.c \
 	mphalport.c \
@@ -50,6 +54,8 @@ SRC_C = \
 	shared/runtime/gchelper_generic.c \
 	shared/runtime/pyexec.c \
 	shared/runtime/stdout_helpers.c \
+	shared/libc/printf.c \
+	shared/libc/string0.c \
 
 # Include NeoRV32 C files
 SRC_C += $(wildcard $(NEORV32_SRC_PATH)/*.c)
@@ -65,10 +71,8 @@ OBJ = $(PY_CORE_O) $(addprefix $(BUILD)/, $(SRC_C:.c=.o))
 OBJ += $(addprefix $(BUILD)/, $(SRC_S:.S=.o))
 
 # Define the top-level target, the main firmware.
-#all: $(BUILD)/firmware.elf
 exe: $(APP_EXE)
 all: $(BUILD)/main.bin
-
 
 # Compile image generator
 $(IMAGE_GEN): $(NEORV32_EXG_PATH)/image_gen.c
@@ -79,7 +83,9 @@ $(IMAGE_GEN): $(NEORV32_EXG_PATH)/image_gen.c
 $(BUILD)/firmware.elf: $(OBJ)
 	$(ECHO) "LINK $@"
 	$(ECHO) "LINKING FILES: $^"
-	$(Q)$(CC) $(LDFLAGS) -o $@ $^ $(LIBS)
+#$(Q)$(LD) $(LDFLAGS) -o $@ $^ $(LIBS)
+# Note : somehow build/ has become part of the dependencies in $^, so dirty fix is to filter it out..
+	$(Q)$(LD) $(LDFLAGS) -o $@ $(filter-out build/, $^) $(LIBS)
 	$(Q)$(SIZE) $@
 
 # Generate final executable from .text + .rodata + .data (in THIS order!)
