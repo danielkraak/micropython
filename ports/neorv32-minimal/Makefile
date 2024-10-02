@@ -5,11 +5,17 @@ include ../../py/mkenv.mk
 include $(TOP)/py/py.mk
 include $(TOP)/extmod/extmod.mk
 
+# MicroPython feature configurations
+MICROPY_ROM_TEXT_COMPRESSION ?= 1
+
 # Do cross-compilation for riscv
 CROSS=1
 CROSS_COMPILE ?= riscv32-unknown-elf-
 MARCH ?= rv32i_zicsr_zifencei
 MABI  ?= ilp32
+
+MICROPY_PY_USSL = 0
+MICROPY_SSL_AXTLS = 0
 
 # NeoRV32 folders
 NEORV32_HOME ?= /home/daniel/git-dropbox/softcore_micropython/common/neorv32
@@ -49,6 +55,7 @@ LDFLAGS += -nostdlib -T neorv32.ld -Map=$@.map --cref --gc-sections
 # string0.c also necessary when compiling with -nostdlib
 SRC_C = \
 	main.c \
+	strtoll.c \
 	mphalport.c \
 	shared/readline/readline.c \
 	shared/runtime/gchelper_generic.c \
@@ -63,11 +70,12 @@ SRC_C += $(wildcard $(NEORV32_SRC_PATH)/*.c)
 SRC_S = \
 	crt0.S
 
-# Define source files containung qstrs.
+# Define source files containing qstrs.
 SRC_QSTR += shared/readline/readline.c shared/runtime/pyexec.c
 
 # Define the required object files.
-OBJ = $(PY_CORE_O) $(addprefix $(BUILD)/, $(SRC_C:.c=.o))
+# Note PY_O refers the extmod files
+OBJ += $(PY_CORE_O) $(PY_O) $(addprefix $(BUILD)/, $(SRC_C:.c=.o))
 OBJ += $(addprefix $(BUILD)/, $(SRC_S:.S=.o))
 
 # Define the top-level target, the main firmware.

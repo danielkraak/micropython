@@ -1,0 +1,21 @@
+Toggling the LED
+
+  Using the machine module it is possible to directly access the memory bus:
+
+  >>> import machine
+  >>> gpio = const(0xfffffc08)
+  >>> machine.mem32[gpio] = 1 # Switch LED off
+  >>> machine.mem32[gpio] = 0 # Switch LED on
+
+
+SHA256
+
+  Using Hashlib it is possible to perform SHA256:
+
+  >>> import hashlib
+  >>> sha = hashlib.sha256()
+  >>> sha.update(b'bla')
+  >>> sha.digest()
+  b'M\xf3\xc3\xf6\x8f\xcc\x83\xb2~\x9dB\xc9\x041\xa7$\x99\xf1xu\xc8\x1aY\x9bVl\x98\x89\xb9ig\x03'
+
+  I verified above output by running the same code on my desktop and it matches.
