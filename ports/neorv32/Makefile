@@ -18,7 +18,8 @@ MICROPY_PY_USSL = 0
 MICROPY_SSL_AXTLS = 0
 
 # NeoRV32 folders
-NEORV32_HOME ?= /home/daniel/git-dropbox/softcore_micropython/common/neorv32
+# Note: this must point to the root of the NeoRV32 project
+NEORV32_HOME = ../../../neorv32
 # Path to NEORV32 linker script and startup file
 NEORV32_COM_PATH = $(NEORV32_HOME)/sw/common
 # Path to main NEORV32 library include files

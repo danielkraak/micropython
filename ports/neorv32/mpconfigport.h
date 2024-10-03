@@ -30,7 +30,7 @@
 #define MICROPY_PY_BINASCII                     (1)
 
 // Machine submodule
-#define MICROPY_PY_MACHINE_INCLUDEFILE          "ports/neorv32-minimal/mods/modmachine.c"
+#define MICROPY_PY_MACHINE_INCLUDEFILE          "ports/neorv32/mods/modmachine.c"
 #define MICROPY_PY_MACHINE                      (1)
 #define MICROPY_PY_MACHINE_MEMX                 (1)
 
