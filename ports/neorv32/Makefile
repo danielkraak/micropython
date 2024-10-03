@@ -14,9 +14,6 @@ CROSS_COMPILE ?= riscv32-unknown-elf-
 MARCH ?= rv32i_zicsr_zifencei
 MABI  ?= ilp32
 
-MICROPY_PY_USSL = 0
-MICROPY_SSL_AXTLS = 0
-
 # NeoRV32 folders
 # Note: this must point to the root of the NeoRV32 project
 NEORV32_HOME = ../../../neorv32
@@ -38,7 +35,7 @@ IMAGE_GEN = $(NEORV32_EXG_PATH)/image_gen
 # Set CFLAGS and libraries.
 CFLAGS_NEORV32  = -march=$(MARCH) -mabi=$(MABI) $(EFFORT) -Wall -ffunction-sections -fdata-sections -nostartfiles -mno-fdiv
 CFLAGS_NEORV32 += -mstrict-align -mbranch-cost=10 -Wl,--gc-sections -ffp-contract=off
-CFLAGS +=  -I. -I$(BUILD) -I$(TOP) -I$(NEORV32_INC_PATH) $(CFLAGS_NEORV32)
+CFLAGS +=  -I. -I$(BUILD) -I$(TOP) -I$(NEORV32_INC_PATH) $(CFLAGS_NEORV32) $(CFLAGS_EXTMOD)
 CFLAGS += -Os # Save some codespace
 
 # Disable debuging (otherwise linker cannot find __asert_func)
